@@ -1,14 +1,23 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_1/values/custom_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../shared/constants/custom_colors.dart';
+import '../../shared/constants/preferences_key.dart';
+import '../../shared/models/login_model.dart';
 
-class CadastroScreen extends StatefulWidget {
-  const CadastroScreen({super.key});
+class SingUpPage extends StatefulWidget {
+  const SingUpPage({super.key});
 
   @override
-  State<CadastroScreen> createState() => _CadastroScreenState();
+  State<SingUpPage> createState() => _SingUpPageState();
 }
 
-class _CadastroScreenState extends State<CadastroScreen> {
+class _SingUpPageState extends State<SingUpPage> {
+  TextEditingController _nameInputController = TextEditingController();
+  TextEditingController _mailInputController = TextEditingController();
+  TextEditingController _passwordInputController = TextEditingController();
+  TextEditingController _confirmInputController = TextEditingController();
+
   bool showPassword = false;
   Color topColor = CustomColors().getGradientTopColor();
   Color bottomColor = CustomColors().getGradientBottomColor();
@@ -34,23 +43,20 @@ class _CadastroScreenState extends State<CadastroScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  bottom: 15,
-                ),
-                child: Text(
-                  "Cadastro",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                  ),
+              Text(
+                "Cadastro",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 30,
                 ),
               ),
+              Padding(padding: EdgeInsets.only(bottom: 15)),
               Form(
                 child: Column(
                   children: [
                     TextFormField(
+                      controller: _nameInputController,
                       style: TextStyle(color: Colors.white),
                       autofocus: true,
                       decoration: InputDecoration(
@@ -75,6 +81,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                     ),
                     TextFormField(
+                      controller: _mailInputController,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: "Email",
@@ -98,6 +105,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                     ),
                     TextFormField(
+                      controller: _passwordInputController,
+                      obscureText: (this.showPassword == false) ? true : false,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: "Senha",
@@ -121,6 +130,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                     ),
                     TextFormField(
+                      controller: _confirmInputController,
+                      obscureText: (this.showPassword == false) ? true : false,
                       style: TextStyle(
                         color: Colors.white,
                       ),
@@ -171,9 +182,12 @@ class _CadastroScreenState extends State<CadastroScreen> {
               ),
               Padding(padding: EdgeInsets.only(bottom: 10)),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  _doSignUp();
+                  Navigator.pop(context);
+                },
                 child: Text(
-                  "Login",
+                  "Cadastrar-se",
                   style: TextStyle(color: bottomColor),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -187,6 +201,26 @@ class _CadastroScreenState extends State<CadastroScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _doSignUp() {
+    LoginModel newUser = LoginModel(
+      name: _nameInputController.text,
+      mail: _mailInputController.text,
+      password: _passwordInputController.text,
+      keppOn: true,
+    );
+
+    print(newUser);
+    _saveUser(newUser);
+  }
+
+  void _saveUser(LoginModel user) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(
+      PreferencesKeys.activeUser,
+      json.encode(user.toJson()),
     );
   }
 }

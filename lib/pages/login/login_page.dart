@@ -1,14 +1,23 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_1/values/custom_colors.dart';
+import 'package:flutter_1/shared/models/login_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+import '../../shared/constants/custom_colors.dart';
+import '../../shared/constants/preferences_key.dart';
+import '../sign_up/sing_up_page.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginPageState extends State<LoginPage> {
+  TextEditingController mailInputController = TextEditingController();
+  TextEditingController passwordInputController = TextEditingController();
+
   Color topColor = CustomColors().getGradientTopColor();
   Color bottomColor = CustomColors().getGradientBottomColor();
   bool continueConnected = false;
@@ -55,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     TextFormField(
+                      controller: mailInputController,
                       style: TextStyle(color: Colors.white),
                       autofocus: true,
                       decoration: InputDecoration(
@@ -79,6 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     TextFormField(
+                      controller: passwordInputController,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: "Senha",
@@ -136,13 +147,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               Padding(padding: EdgeInsets.only(bottom: 10)),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  _doLogin();
+                },
                 child: Text(
                   "Login",
                   style: TextStyle(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  primary: CustomColors().getActivePrimaryButtomColor(),
+                  backgroundColor: CustomColors().getActivePrimaryButtomColor(),
                   fixedSize: Size(double.infinity, 40),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50)),
@@ -164,13 +177,18 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => SingUpPage()));
+                  },
                   child: Text(
                     "Cadastre-se",
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(
+                        color: CustomColors().getActivePrimaryButtomColor()),
                   ),
                   style: ElevatedButton.styleFrom(
-                    primary: CustomColors().getActiveSecondaryButtonColor(),
+                    backgroundColor:
+                        CustomColors().getActiveSecondaryButtonColor(),
                     fixedSize: Size(double.infinity, 40),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50)),
@@ -182,5 +200,27 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void _doLogin() async {
+    String mailForm = this.mailInputController.text;
+    String passForm = this.passwordInputController.text;
+
+    LoginModel savedUser = await _getSavedUser();
+    if (mailForm == savedUser.mail && passForm == savedUser.password) {
+      print('Logado com sucesso');
+    } else {
+      print("deu erro");
+    }
+  }
+
+  Future<LoginModel> _getSavedUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? jsonUser = prefs.getString(PreferencesKeys.activeUser);
+    print(jsonUser);
+
+    Map<String, dynamic> mapUser = json.decode(jsonUser!);
+    LoginModel user = LoginModel.fromJson(mapUser);
+    return user;
   }
 }
